@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../services/api';
 import { LogOut, Calendar, Activity, User as UserIcon, Heart, Settings, Bell, ChevronRight, FilePlus, ShieldPlus, Edit2, Save, X, Plus } from 'lucide-react';
-
-const API_BASE = 'http://localhost:5000/api';
 
 const PatientDashboard = () => {
   const { user, logout, updateUser } = useAuth();
@@ -27,10 +25,10 @@ const PatientDashboard = () => {
     setLoading(true);
     try {
       const [apptRes, hrRes, rxRes, notifRes] = await Promise.all([
-        axios.get(`${API_BASE}/patient/appointments`),
-        axios.get(`${API_BASE}/patient/health-record`),
-        axios.get(`${API_BASE}/patient/prescriptions`),
-        axios.get(`${API_BASE}/notifications`)
+        api.get('/patient/appointments'),
+        api.get('/patient/health-record'),
+        api.get('/patient/prescriptions'),
+        api.get('/notifications')
       ]);
       setAppointments(apptRes.data.appointments);
       setHealthRecord(hrRes.data.healthRecord);
@@ -60,7 +58,7 @@ const PatientDashboard = () => {
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.put(`${API_BASE}/patient/profile`, profileForm);
+      const res = await api.put('/patient/profile', profileForm);
       updateUser(res.data.user);
       setIsEditingProfile(false);
     } catch (err) {
@@ -71,7 +69,7 @@ const PatientDashboard = () => {
   const handleBookAppointment = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API_BASE}/patient/appointments`, appointmentForm);
+      await api.post('/patient/appointments', appointmentForm);
       setShowAppointmentModal(false);
       setAppointmentForm({ doctorName: '', date: '', time: '', type: '', notes: '' });
       fetchDashboardData();
@@ -88,7 +86,7 @@ const PatientDashboard = () => {
     setShowNotifications(!showNotifications);
     if (unreadCount > 0 && !showNotifications) {
       try {
-        await axios.put(`${API_BASE}/notifications/read`);
+        await api.put('/notifications/read');
         setNotifications(notifications.map(n => ({ ...n, isRead: true })));
       } catch (err) {
         console.error('Failed to mark notifications as read', err);

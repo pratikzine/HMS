@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
-
-const API_BASE = 'http://localhost:5000/api';
+import api from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -16,30 +14,27 @@ export const AuthProvider = ({ children }) => {
     if (storedToken && storedUser) {
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
-      axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
     }
     setLoading(false);
   }, []);
 
   const login = async (email, password, role) => {
-    const res = await axios.post(`${API_BASE}/auth/login`, { email, password, role });
+    const res = await api.post('/auth/login', { email, password, role });
     const { token: newToken, user: newUser } = res.data;
     setToken(newToken);
     setUser(newUser);
     localStorage.setItem('hms_token', newToken);
     localStorage.setItem('hms_user', JSON.stringify(newUser));
-    axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
     return newUser;
   };
 
   const signup = async (data) => {
-    const res = await axios.post(`${API_BASE}/auth/signup`, data);
+    const res = await api.post('/auth/signup', data);
     const { token: newToken, user: newUser } = res.data;
     setToken(newToken);
     setUser(newUser);
     localStorage.setItem('hms_token', newToken);
     localStorage.setItem('hms_user', JSON.stringify(newUser));
-    axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
     return newUser;
   };
 
@@ -48,7 +43,6 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem('hms_token');
     localStorage.removeItem('hms_user');
-    delete axios.defaults.headers.common['Authorization'];
   };
 
   const updateUser = (updatedUser) => {

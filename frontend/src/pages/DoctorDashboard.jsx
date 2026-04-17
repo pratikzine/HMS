@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../services/api';
 import { LogOut, Calendar, Users, Activity, Settings, Bell, ChevronRight, FilePlus, Heart, Edit2, Save, X, Plus } from 'lucide-react';
-
-const API_BASE = 'http://localhost:5000/api';
 
 const DoctorDashboard = () => {
   const { user, logout, updateUser } = useAuth();
@@ -27,10 +25,10 @@ const DoctorDashboard = () => {
     setLoading(true);
     try {
       const [apptRes, pRes, rxRes, notifRes] = await Promise.all([
-        axios.get(`${API_BASE}/doctor/appointments`),
-        axios.get(`${API_BASE}/doctor/patients`),
-        axios.get(`${API_BASE}/doctor/prescriptions`),
-        axios.get(`${API_BASE}/notifications`)
+        api.get('/doctor/appointments'),
+        api.get('/doctor/patients'),
+        api.get('/doctor/prescriptions'),
+        api.get('/notifications')
       ]);
       setAppointments(apptRes.data.appointments);
       setPatients(pRes.data.patients);
@@ -59,7 +57,7 @@ const DoctorDashboard = () => {
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.put(`${API_BASE}/doctor/profile`, profileForm);
+      const res = await api.put('/doctor/profile', profileForm);
       updateUser(res.data.user);
       setIsEditingProfile(false);
     } catch (err) {
@@ -69,7 +67,7 @@ const DoctorDashboard = () => {
 
   const handleAppointmentStatus = async (id, status) => {
     try {
-      await axios.put(`${API_BASE}/doctor/appointments/${id}/status`, { status });
+      await api.put(`/doctor/appointments/${id}/status`, { status });
       fetchDashboardData();
     } catch (err) {
       console.error('Status update failed:', err);
@@ -89,7 +87,7 @@ const DoctorDashboard = () => {
   const handleCreatePrescription = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API_BASE}/doctor/prescriptions`, prescriptionForm);
+      await api.post('/doctor/prescriptions', prescriptionForm);
       setShowPrescriptionModal(false);
       setPrescriptionForm({ patientId: '', date: new Date().toISOString().split('T')[0], diagnosis: '', medications: [{ name: '', dosage: '', frequency: '', duration: '' }], notes: '' });
       fetchDashboardData();
@@ -106,7 +104,7 @@ const DoctorDashboard = () => {
     setShowNotifications(!showNotifications);
     if (unreadCount > 0 && !showNotifications) {
       try {
-        await axios.put(`${API_BASE}/notifications/read`);
+        await api.put('/notifications/read');
         setNotifications(notifications.map(n => ({ ...n, isRead: true })));
       } catch (err) {
         console.error('Failed to mark notifications as read', err);
